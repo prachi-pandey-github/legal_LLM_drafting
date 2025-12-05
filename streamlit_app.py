@@ -125,10 +125,10 @@ def render_document_form():
             help="Legal jurisdiction for the document"
         )
         
-        parties = st.text_input(
-            "Parties Involved",
-            placeholder="e.g., John Doe, ABC Company",
-            help="Names of parties involved in the agreement"
+        borrower = st.text_input(
+            "Borrower",
+            placeholder="e.g., John Doe",
+            help="Name of the borrower"
         )
     
     with col2:
@@ -137,11 +137,62 @@ def render_document_form():
             help="When the agreement becomes effective"
         )
         
-        special_terms = st.text_input(
-            "Special Terms/Clauses",
-            placeholder="Any specific clauses or terms to include",
-            help="Additional terms or clauses to include"
+        lender = st.text_input(
+            "Lender",
+            placeholder="e.g., ABC Bank",
+            help="Name of the lender"
         )
+    
+    # Loan specific fields (for loan agreements)
+    if doc_type == "loan_agreement":
+        st.subheader("💰 Loan Details")
+        col3, col4, col5 = st.columns(3)
+        
+        with col3:
+            principal_amount = st.number_input(
+                "Principal Amount",
+                min_value=0.0,
+                format="%.2f",
+                help="The loan amount in your local currency"
+            )
+        
+        with col4:
+            interest_rate = st.number_input(
+                "Interest Rate (% per annum)",
+                min_value=0.0,
+                max_value=100.0,
+                step=0.1,
+                format="%.2f",
+                help="Annual interest rate percentage"
+            )
+        
+        with col5:
+            loan_tenure = st.number_input(
+                "Loan Tenure (months)",
+                min_value=1,
+                max_value=360,
+                step=1,
+                help="Loan duration in months"
+            )
+        
+        # Purpose field (full width under loan details)
+        loan_purpose = st.text_input(
+            "Loan Purpose",
+            placeholder="e.g., Home renovation, Business expansion, Education",
+            help="Describe the purpose for which the loan will be used"
+        )
+    else:
+        principal_amount = None
+        interest_rate = None
+        loan_tenure = None
+        loan_purpose = None
+    
+    # Special terms field (full width)
+    special_terms = st.text_input(
+        "Special Terms/Clauses",
+        placeholder="Any specific clauses or terms to include",
+        help="Additional terms or clauses to include"
+    )
     
     # Generate button
     if st.button("🚀 Generate Document", type="primary", disabled=not (doc_type and description)):
@@ -150,13 +201,58 @@ def render_document_form():
             return
             
         with st.spinner("Generating your legal document... This may take a few moments."):
-            document_data = {
-                "document_type": doc_type,
-                "description": description,
-                "jurisdiction": jurisdiction,
-                "parties": parties if parties else "Party A, Party B",
+            # Create the prompt with all the information for proper legal document format
+            if doc_type == "loan_agreement":
+                prompt = f"Generate a Personal Loan Agreement with proper legal formatting.\n\n"
+                prompt += f"The agreement should start with: 'This Loan Agreement (\"Agreement\") is entered into on {effective_date}, between:'\n"
+                prompt += f"LENDER: {lender if lender else 'Lender'}\n"
+                prompt += f"BORROWER: {borrower if borrower else 'Borrower'}\n\n"
+                
+                if principal_amount and interest_rate and loan_tenure:
+                    prompt += f"Loan Details:\n"
+                    prompt += f"- Principal Amount: {principal_amount:,.2f}\n"
+                    prompt += f"- Interest Rate: {interest_rate}% per annum\n"
+                    prompt += f"- Loan Tenure: {int(loan_tenure)} months\n"
+                    if loan_purpose:
+                        prompt += f"- Purpose: {loan_purpose}\n"
+                
+                prompt += f"\nJurisdiction: {jurisdiction}\n"
+                if special_terms:
+                    prompt += f"Special Terms: {special_terms}\n"
+                
+                prompt += f"\nAdditional Requirements: {description}"
+            else:
+                prompt = f"{description}\n\n"
+                prompt += f"Document Type: {DOCUMENT_TYPES[doc_type]}\n"
+                prompt += f"Jurisdiction: {jurisdiction}\n"
+                prompt += f"Borrower: {borrower if borrower else 'Borrower'}\n"
+                prompt += f"Lender: {lender if lender else 'Lender'}\n"
+                prompt += f"Effective Date: {effective_date}\n"
+                if special_terms:
+                    prompt += f"Special Terms: {special_terms}\n"
+            
+            # Prepare variables dictionary
+            variables = {
+                "borrower_name": borrower if borrower else "Borrower",
+                "lender_name": lender if lender else "Lender",
                 "effective_date": str(effective_date),
                 "special_terms": special_terms
+            }
+            
+            # Add loan-specific variables if it's a loan agreement
+            if doc_type == "loan_agreement":
+                variables.update({
+                    "amount": f"{principal_amount:,.2f}" if principal_amount else "[LOAN AMOUNT]",
+                    "interest_rate": f"{interest_rate}" if interest_rate else "[INTEREST RATE]",
+                    "tenure": f"{int(loan_tenure)}" if loan_tenure else "[LOAN TENURE]",
+                    "purpose": loan_purpose if loan_purpose else "General financial needs"
+                })
+            
+            document_data = {
+                "prompt": prompt,
+                "document_type": doc_type,
+                "jurisdiction": jurisdiction,
+                "variables": variables
             }
             
             result = generate_document(document_data)
