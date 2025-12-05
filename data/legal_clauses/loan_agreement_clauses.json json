@@ -1,0 +1,71 @@
+[
+  {
+    "id": "loan_agreement_1",
+    "document_type": "loan_agreement",
+    "clause_title": "Parties",
+    "clause_content": "This Loan Agreement (\"Agreement\") is made on [DATE] between [LENDER_NAME] (\"Lender\") having its address at [LENDER_ADDRESS] and [BORROWER_NAME] (\"Borrower\") having its address at [BORROWER_ADDRESS] (collectively referred to as the \"Parties\").",
+    "jurisdiction": "IN",
+    "keywords": ["parties", "lender", "borrower", "agreement"]
+  },
+  {
+    "id": "loan_agreement_2",
+    "document_type": "loan_agreement",
+    "clause_title": "Loan Amount and Disbursement",
+    "clause_content": "The Lender agrees to lend and the Borrower agrees to borrow the sum of [LOAN_AMOUNT] (\"Loan Amount\"). The Loan Amount shall be disbursed in full to the Borrower's account on or before [DISBURSEMENT_DATE].",
+    "jurisdiction": "IN",
+    "keywords": ["loan amount", "disbursement", "sum"]
+  },
+  {
+    "id": "loan_agreement_3",
+    "document_type": "loan_agreement",
+    "clause_title": "Interest Rate",
+    "clause_content": "The Loan Amount shall bear simple interest at the rate of [INTEREST_RATE]% per annum, calculated on the outstanding principal amount. Interest shall be payable [INTEREST_PAYMENT_FREQUENCY].",
+    "jurisdiction": "IN",
+    "keywords": ["interest rate", "simple interest", "per annum"]
+  },
+  {
+    "id": "loan_agreement_4",
+    "document_type": "loan_agreement",
+    "clause_title": "Repayment Schedule",
+    "clause_content": "The Borrower shall repay the Loan Amount in [NUMBER_OF_INSTALLMENTS] equal monthly installments of [INSTALLMENT_AMOUNT] each, commencing from [FIRST_INSTALLMENT_DATE] and on the same date of each succeeding month until the Loan Amount together with interest is repaid in full.",
+    "jurisdiction": "IN",
+    "keywords": ["repayment", "installments", "schedule", "monthly"]
+  },
+  {
+    "id": "loan_agreement_5",
+    "document_type": "loan_agreement",
+    "clause_title": "Prepayment",
+    "clause_content": "The Borrower may prepay the outstanding Loan Amount in part or in full at any time without any prepayment penalty, provided that the Borrower gives [PREPAYMENT_NOTICE_PERIOD] days' prior written notice to the Lender.",
+    "jurisdiction": "IN",
+    "keywords": ["prepayment", "early payment", "penalty"]
+  },
+  {
+    "id": "loan_agreement_6",
+    "document_type": "loan_agreement",
+    "clause_title": "Default",
+    "clause_content": "If the Borrower fails to pay any installment on the due date, the entire outstanding Loan Amount together with accrued interest shall become immediately due and payable. The Borrower shall also be liable to pay default interest at [DEFAULT_INTEREST_RATE]% per annum on the overdue amount from the due date until actual payment.",
+    "jurisdiction": "IN",
+    "keywords": ["default", "overdue", "interest", "penalty"]
+  },
+  {
+    "id": "loan_agreement_7",
+    "document_type": "loan_agreement",
+    "clause_title": "Representations and Warranties",
+    "clause_content": "The Borrower represents and warrants that: (a) it has the legal capacity to enter into this Agreement; (b) all information provided to the Lender is true and accurate; (c) the Loan Amount shall be used only for the purpose stated in this Agreement.",
+    "jurisdiction": "IN",
+    "keywords": ["representations", "warranties", "capacity", "information"]
+  },
+  {
+    "id": "loan_agreement_8",
+    "document_type": "loan_agreement",
+    "clause_title": "Governing Law and Jurisdiction",
+    "clause_content": "This Agreement shall be governed by and construed in accordance with the laws of India. Any disputes arising under this Agreement shall be subject to the exclusive jurisdiction of the courts in [CITY], [STATE].",
+    "jurisdiction": "IN",
+    "keywords": ["governing law", "jurisdiction", "courts", "disputes"]
+  },
+  {
+    "id": "loan_agreement_9",
+    "document_type": "loan_agreement",
+    "clause_title": "Notices",
+    "clause_content": "All notices under this Agreement shall be in writing and shall be deemed duly given when delivered personally or sent by registered post to the addresses mentioned above or such other
+  }

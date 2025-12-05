@@ -1,0 +1,275 @@
+"""
+Legal Drafting LLM - Streamlit Web Application
+"""
+
+import streamlit as st
+import requests
+import json
+import tempfile
+import os
+from datetime import datetime
+from typing import Dict, Any
+from streamlit_components import (
+    render_document_templates,
+    render_document_history,
+    render_help_section,
+    render_settings
+)
+
+# Configuration
+API_BASE_URL = "http://127.0.0.1:8000"
+DOCUMENT_TYPES = {
+    "loan_agreement": "Loan Agreement",
+    "rental_agreement": "Rental Agreement", 
+    "service_agreement": "Service Agreement",
+    "nda": "Non-Disclosure Agreement"
+}
+
+def init_session_state():
+    """Initialize session state variables"""
+    if 'generated_documents' not in st.session_state:
+        st.session_state.generated_documents = []
+    if 'current_document' not in st.session_state:
+        st.session_state.current_document = None
+
+def check_api_connection():
+    """Check if API server is running"""
+    try:
+        response = requests.get(f"{API_BASE_URL}/", timeout=5)
+        return response.status_code == 200
+    except:
+        return False
+
+def get_document_types():
+    """Fetch document types from API"""
+    try:
+        response = requests.get(f"{API_BASE_URL}/api/v1/document-types")
+        if response.status_code == 200:
+            return response.json()
+        return None
+    except:
+        return None
+
+def generate_document(document_data: Dict[str, Any]):
+    """Generate document via API"""
+    try:
+        response = requests.post(
+            f"{API_BASE_URL}/api/v1/draft-document",
+            json=document_data,
+            timeout=60
+        )
+        return response.json() if response.status_code == 200 else None
+    except Exception as e:
+        st.error(f"Error generating document: {str(e)}")
+        return None
+
+def download_document(document_id: str):
+    """Download generated document"""
+    try:
+        response = requests.get(f"{API_BASE_URL}/api/v1/download/{document_id}")
+        if response.status_code == 200:
+            return response.content
+        return None
+    except:
+        return None
+
+def render_sidebar():
+    """Render sidebar with navigation and settings"""
+    st.sidebar.title("🏛️ Legal Drafting LLM")
+    st.sidebar.markdown("---")
+    
+    # Navigation
+    page = st.sidebar.selectbox(
+        "📍 Navigation",
+        ["Document Generator", "Templates", "History", "Help", "Settings"]
+    )
+    
+    st.sidebar.markdown("---")
+    
+    # API Status
+    if check_api_connection():
+        st.sidebar.success("🟢 API Server Connected")
+    else:
+        st.sidebar.error("🔴 API Server Offline")
+        st.sidebar.info("Please start the FastAPI server:\n`uvicorn main:app --reload`")
+    
+    return page
+
+def render_document_form():
+    """Render document generation form"""
+    st.header("📝 Generate Legal Document")
+    
+    # Document type selection
+    doc_type = st.selectbox(
+        "Document Type *",
+        options=list(DOCUMENT_TYPES.keys()),
+        format_func=lambda x: DOCUMENT_TYPES[x],
+        help="Select the type of legal document you want to generate"
+    )
+    
+    # Main description
+    description = st.text_area(
+        "Document Description *",
+        height=150,
+        placeholder="Describe the legal document you need. Be specific about parties involved, terms, conditions, and any special requirements...",
+        help="Provide a detailed description of what you need"
+    )
+    
+    # Additional parameters in columns
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        jurisdiction = st.selectbox(
+            "Jurisdiction",
+            ["IN", "US", "UK", "CA", "AU"],
+            help="Legal jurisdiction for the document"
+        )
+        
+        parties = st.text_input(
+            "Parties Involved",
+            placeholder="e.g., John Doe, ABC Company",
+            help="Names of parties involved in the agreement"
+        )
+    
+    with col2:
+        effective_date = st.date_input(
+            "Effective Date",
+            help="When the agreement becomes effective"
+        )
+        
+        special_terms = st.text_input(
+            "Special Terms/Clauses",
+            placeholder="Any specific clauses or terms to include",
+            help="Additional terms or clauses to include"
+        )
+    
+    # Generate button
+    if st.button("🚀 Generate Document", type="primary", disabled=not (doc_type and description)):
+        if not check_api_connection():
+            st.error("❌ API server is not running. Please start the FastAPI server first.")
+            return
+            
+        with st.spinner("Generating your legal document... This may take a few moments."):
+            document_data = {
+                "document_type": doc_type,
+                "description": description,
+                "jurisdiction": jurisdiction,
+                "parties": parties if parties else "Party A, Party B",
+                "effective_date": str(effective_date),
+                "special_terms": special_terms
+            }
+            
+            result = generate_document(document_data)
+            
+            if result:
+                st.success("✅ Document generated successfully!")
+                st.session_state.current_document = result
+                
+                # Add to history
+                st.session_state.generated_documents.append({
+                    "title": f"{DOCUMENT_TYPES[doc_type]} - {effective_date}",
+                    "type": doc_type,
+                    "generated_at": str(datetime.now()),
+                    "document_id": result.get('document_id', ''),
+                    "status": "Completed"
+                })
+            else:
+                st.error("❌ Failed to generate document. Please try again.")
+
+def render_document_preview():
+    """Render document preview and download"""
+    if st.session_state.current_document:
+        st.header("📄 Generated Document")
+        
+        doc = st.session_state.current_document
+        
+        # Document info
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Document ID", doc.get('document_id', 'N/A'))
+        with col2:
+            st.metric("Status", doc.get('status', 'Generated'))
+        with col3:
+            st.metric("Pages", doc.get('pages', 1))
+        
+        # Content preview
+        if 'content' in doc:
+            st.subheader("📖 Preview")
+            with st.expander("View Document Content", expanded=True):
+                st.markdown(doc['content'])
+        
+        # Download button
+        if 'document_id' in doc:
+            if st.button("📥 Download Document (.docx)", type="primary"):
+                content = download_document(doc['document_id'])
+                if content:
+                    st.download_button(
+                        label="💾 Save Document",
+                        data=content,
+                        file_name=f"{doc.get('document_id', 'document')}.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    )
+                else:
+                    st.error("Failed to download document")
+
+def main():
+    """Main application"""
+    st.set_page_config(
+        page_title="Legal Drafting LLM",
+        page_icon="🏛️",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
+    
+    # Initialize session state
+    init_session_state()
+    
+    # Render sidebar and get selected page
+    page = render_sidebar()
+    
+    # Render main content based on selected page
+    if page == "Document Generator":
+        col1, col2 = st.columns([3, 2])
+        
+        with col1:
+            render_document_form()
+        
+        with col2:
+            render_document_preview()
+    
+    elif page == "Templates":
+        render_document_templates()
+    
+    elif page == "History":
+        render_document_history()
+        
+        # Show recent documents from session
+        if st.session_state.generated_documents:
+            st.subheader("📋 Current Session Documents")
+            for i, doc in enumerate(reversed(st.session_state.generated_documents)):
+                with st.expander(f"📄 {doc['title']}"):
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.write(f"**Type:** {DOCUMENT_TYPES.get(doc['type'], doc['type'])}")
+                    with col2:
+                        st.write(f"**Generated:** {doc['generated_at'][:19]}")
+                    with col3:
+                        st.write(f"**Status:** {doc['status']}")
+    
+    elif page == "Help":
+        render_help_section()
+    
+    elif page == "Settings":
+        render_settings()
+    
+    # Footer
+    st.markdown("---")
+    st.markdown(
+        "<div style='text-align: center; color: #666; padding: 20px;'>"
+        "Legal Drafting LLM v1.0.0 | Built with Streamlit & FastAPI"
+        "</div>", 
+        unsafe_allow_html=True
+    )
+
+if __name__ == "__main__":
+    main()

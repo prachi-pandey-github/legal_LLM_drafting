@@ -1,0 +1,39 @@
+# FastAPI & Web
+fastapi
+uvicorn[standard]==0.24.0
+python-multipart==0.0.6
+
+# Data Validation
+pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# LLM & AI
+openai==1.6.1
+langchain==0.0.340
+langchain-community==0.0.10
+langchain-openai==0.0.2
+langgraph==0.0.13
+chromadb==0.4.18
+sentence-transformers==2.2.2
+faiss-cpu
+
+# Document Processing
+python-docx==0.8.11
+docx-template==0.9.10
+pypdf2==3.0.1
+
+# Utilities
+python-dotenv==1.0.0
+loguru==0.7.2
+requests==2.31.0
+python-json-logger==2.0.7
+cachetools==5.3.1
+
+# Streamlit Web App
+streamlit>=1.28.0
+streamlit-option-menu==0.3.6
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+httpx==0.25.1

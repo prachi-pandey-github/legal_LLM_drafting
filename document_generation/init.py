@@ -1,0 +1,3 @@
+"""
+Document generation package initialization
+"""
